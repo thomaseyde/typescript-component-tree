@@ -11,8 +11,11 @@ export type ComponentDTO = {
   id: string
   submissionId: string
   stationName: string
+  stationBuildYear: number
   fieldName: string
+  fieldOperatingVoltage: number
   switchName: string
+  switchRatedVoltage: number
   name: string
 }
 
@@ -25,6 +28,10 @@ export type ComponentTreeNode = {
   name: string
   children: ComponentTreeNode[]
   parentId?: string
+  buildYear?: number
+  stationName?: string
+  operatingVoltage?: number
+  ratedVoltage?: number
 }
 
 export type TreeState = Record<string, boolean>
@@ -33,12 +40,12 @@ export type TreeState = Record<string, boolean>
 const submissionFixture: SubmissionDTO = { id: 'submission-1', name: 'Customer Submission 1' }
 
 const componentsFixture: ComponentDTO[] = [
-  { id: 'c1', submissionId: 'submission-1', stationName: 'Station A', fieldName: 'Field X', switchName: 'Switch 1', name: 'Switch 1' },
-  { id: 'c2', submissionId: 'submission-1', stationName: 'Station A', fieldName: 'Field X', switchName: 'Switch 2', name: 'Switch 2' },
-  { id: 'c3', submissionId: 'submission-1', stationName: 'Station A', fieldName: 'Field Y', switchName: 'Switch 3', name: 'Switch 3' },
-  { id: 'c4', submissionId: 'submission-1', stationName: 'Station B', fieldName: 'Field Z', switchName: 'Switch 4', name: 'Switch 4' },
-  { id: 'c5', submissionId: 'submission-1', stationName: 'Station B', fieldName: 'Field Z', switchName: 'Switch 5', name: 'Switch 5' },
-  { id: 'c6', submissionId: 'submission-1', stationName: 'Station B', fieldName: 'Field Z', switchName: 'Switch 6', name: 'Switch 6' },
+  { id: 'c1', submissionId: 'submission-1', stationName: 'Station A', stationBuildYear: 2018, fieldName: 'Field X', fieldOperatingVoltage: 110, switchName: 'Switch 1', switchRatedVoltage: 12, name: 'Switch 1' },
+  { id: 'c2', submissionId: 'submission-1', stationName: 'Station A', stationBuildYear: 2018, fieldName: 'Field X', fieldOperatingVoltage: 110, switchName: 'Switch 2', switchRatedVoltage: 24, name: 'Switch 2' },
+  { id: 'c3', submissionId: 'submission-1', stationName: 'Station A', stationBuildYear: 2018, fieldName: 'Field Y', fieldOperatingVoltage: 115, switchName: 'Switch 3', switchRatedVoltage: 36, name: 'Switch 3' },
+  { id: 'c4', submissionId: 'submission-1', stationName: 'Station B', stationBuildYear: 2021, fieldName: 'Field Z', fieldOperatingVoltage: 120, switchName: 'Switch 4', switchRatedVoltage: 12, name: 'Switch 4' },
+  { id: 'c5', submissionId: 'submission-1', stationName: 'Station B', stationBuildYear: 2021, fieldName: 'Field Z', fieldOperatingVoltage: 120, switchName: 'Switch 5', switchRatedVoltage: 24, name: 'Switch 5' },
+  { id: 'c6', submissionId: 'submission-1', stationName: 'Station B', stationBuildYear: 2021, fieldName: 'Field Z', fieldOperatingVoltage: 120, switchName: 'Switch 6', switchRatedVoltage: 36, name: 'Switch 6' },
 ]
 
 // API simulation functions
@@ -91,26 +98,33 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentTreeNod
 
       const fieldNodes: ComponentTreeNode[] = Array.from(byField.entries())
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([fieldName, fieldComponents]) => ({
-          id: `field:${stationName}:${fieldName}`,
-          type: 'field',
-          name: fieldName,
-          parentId: `station:${stationName}`,
-          children: fieldComponents
-            .sort((a, b) => a.name.localeCompare(b.name))
-            .map((component) => ({
-              id: `switch:${component.id}`,
-              type: 'switch',
-              name: component.name,
-              parentId: `field:${stationName}:${fieldName}`,
-              children: [],
-            })),
-        }))
+        .map(([fieldName, fieldComponents]) => {
+          const first = fieldComponents[0]
+          return {
+            id: `field:${stationName}:${fieldName}`,
+            type: 'field',
+            name: fieldName,
+            parentId: `station:${stationName}`,
+            stationName,
+            operatingVoltage: first.fieldOperatingVoltage,
+            children: fieldComponents
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((component) => ({
+                id: `switch:${component.id}`,
+                type: 'switch',
+                name: component.name,
+                parentId: `field:${stationName}:${fieldName}`,
+                ratedVoltage: component.switchRatedVoltage,
+                children: [],
+              })),
+          }
+        })
 
       return {
         id: `station:${stationName}`,
         type: 'station',
         name: stationName,
+        buildYear: stationComponents[0]?.stationBuildYear,
         children: fieldNodes,
       }
     })
@@ -242,8 +256,8 @@ function App() {
     setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
   }
 
-  const renderTree = (nodes: ComponentTreeNode[], depth = 0): React.ReactNode[] => {
-    const rendered: React.ReactNode[] = []
+  const renderTree = (nodes: ComponentTreeNode[], depth = 0): JSX.Element[] => {
+    const rendered: JSX.Element[] = []
 
     for (const node of nodes) {
       const visible = query.length === 0 ? true : visibleNodeIds.has(node.id)
@@ -266,6 +280,15 @@ function App() {
           {!hasChildren && <span className="tree-toggle-placeholder" />}
           <span className={`tree-node ${node.type}`}>{node.name}</span>
           <span className="tree-meta">({node.type})</span>
+          {node.type === 'station' && node.buildYear != null && (
+            <span className="tree-meta">• Build year: {node.buildYear}</span>
+          )}
+          {node.type === 'field' && node.operatingVoltage != null && (
+            <span className="tree-meta">• Op voltage: {node.operatingVoltage}kV</span>
+          )}
+          {node.type === 'switch' && node.ratedVoltage != null && (
+            <span className="tree-meta">• Rated: {node.ratedVoltage}kV</span>
+          )}
         </div>
       )
 
