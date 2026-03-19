@@ -60,7 +60,14 @@ export const retrieveComponents = async (
   }
 
   const normalized = filterName.trim().toLowerCase()
-  return components.filter((c) => c.name.toLowerCase().includes(normalized))
+  return components.filter((c) => {
+    return (
+      c.name.toLowerCase().includes(normalized) ||
+      c.switchName.toLowerCase().includes(normalized) ||
+      c.fieldName.toLowerCase().includes(normalized) ||
+      c.stationName.toLowerCase().includes(normalized)
+    )
+  })
 }
 
 export const buildComponentTree = (components: ComponentDTO[]): ComponentTreeNode[] => {
