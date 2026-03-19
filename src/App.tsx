@@ -235,8 +235,8 @@ function App() {
     setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
   }
 
-  const renderTree = (nodes: ComponentTreeNode[], depth = 0): JSX.Element[] => {
-    const rendered: JSX.Element[] = []
+  const renderTree = (nodes: ComponentTreeNode[], depth = 0): React.ReactNode[] => {
+    const rendered: React.ReactNode[] = []
 
     for (const node of nodes) {
       const visible = query.length === 0 ? true : visibleNodeIds.has(node.id)
@@ -246,8 +246,8 @@ function App() {
 
       const hasChildren = node.children.length > 0
       const userExpanded = !!expanded[node.id]
-      const showSubtreeBecauseFilter = isCollapsedAll && query.length > 0 && visibleNodeWithAncestors.has(node.id)
-      const isExpanded = showSubtreeBecauseFilter ? true : userExpanded
+      const autoExpandedForFilter = query.length > 0 && visibleNodeWithAncestors.has(node.id)
+      const isExpanded = hasChildren && (autoExpandedForFilter || userExpanded)
 
       rendered.push(
         <div key={node.id} className="tree-row" style={{ marginLeft: depth * 12 }}>
