@@ -1,73 +1,21 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Prompts
 
-Currently, two official plugins are available:
+## Create a React/TypeScript app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+> Create a vite starter app with react and typescript
 
-## React Compiler
+## Implement the domain
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+> My domain has submissions. A submission has components. At the root level there are stations. A station can have fields. A field can have switches. They all have names. Other details are not important at this time. A submission and its components are retrieved from a backend api. These are two different endpoints because components can be filtered. A filter work on component name. Components are delivered from the backend as a flat list. The frontend must reorganize these as a tree with stations at the top. The tree can be expanded or collapsed. Each node can also be expanded or collapsed. Expand all and collapse all are features, so are expand and collapse individual nodes. A special feature is when all is collapsed and a text filter is applied, then all matching nodes should be visible including their parents. Use TypeScript. Design all types. Use type aliases only. Design dtos. Simulate the backend with fixed data for one submission and enough components to fill the tree completely. Design a function to retrieve a submission. Design a function to retrieve components for a submission, this function must also support filter. Design a function to build the component tree. Design functions to expand all, collapse all, expand one, collapse one, filter tree.
 
-## Expanding the ESLint configuration
+## Fix issues
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+> If I refresh and filter by "1", the switch 1 is visible as expected. If I collapse all, expand station a, and filter by "1", then all nodes disappear except for the parents of switch 1, but the switch itself is not visible
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> The filter does not work on parent nodes
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Extend the domain
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+> Extend the domain: Station should have name and build year. Field should have name, station it belongs to (the parent), operating voltage. Switch should have name and rated voltage.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
