@@ -18,6 +18,7 @@ import {
   expandOne,
   filterTree,
 } from './tree-view'
+import { NodeContent } from './components/NodeContent'
 
 function App() {
   const [submission, setSubmission] = useState<SubmissionDTO | null>(null)
@@ -92,17 +93,7 @@ function App() {
             </button>
           )}
           {!hasChildren && <span className="tree-toggle-placeholder" />}
-          <span className={`tree-node ${node.type}`}>{node.name}</span>
-          <span className="tree-meta">({node.type})</span>
-          {node.type === 'station' && node.buildYear != null && (
-            <span className="tree-meta">• Build year: {node.buildYear}</span>
-          )}
-          {node.type === 'field' && node.operatingVoltage != null && (
-            <span className="tree-meta">• Op voltage: {node.operatingVoltage}kV</span>
-          )}
-          {node.type === 'switch' && node.ratedVoltage != null && (
-            <span className="tree-meta">• Rated: {node.ratedVoltage}kV</span>
-          )}
+          <NodeContent node={node} />
         </div>
       )
 

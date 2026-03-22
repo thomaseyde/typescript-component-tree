@@ -25,3 +25,5 @@
 
 > Treeview concepts are still present in the domain, like: TreeNodeType, ComponentTreeNode, TreeState. If these are domain concepts, give them better names. If treeview concepts are still mixed with domain concepts, then separate them
 
+> Separate domain presentation from the treeview presentation. The treeview presentation code should render the treeview structure like expand/collapse node buttons. The node content should be delegated to specialised react components, one for station, one for field, one for switch.
+
