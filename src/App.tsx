@@ -1,19 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import type { SubmissionDTO, ComponentDTO } from './domain'
-import type { TreeNode, ExpandedState } from './tree-view'
+import type { TreeNode, Nodes } from './components/tree-view'
 import {
   retrieveSubmission,
   retrieveComponents,
   buildComponentTree,
 } from './domain'
-import {
-  collapseAll,
-  collapseOne,
-  expandAll,
-  expandOne,
-  filterTree,
-} from './tree-view'
+// nodes intent type is imported as a type above
 import { TreeView } from './components/TreeView'
 import { StationPresenter } from './components/StationNode'
 import { FieldPresenter } from './components/FieldNode'
@@ -23,7 +17,7 @@ function App() {
   const [submission, setSubmission] = useState<SubmissionDTO | null>(null)
   const [components, setComponents] = useState<ComponentDTO[]>([])
   const [tree, setTree] = useState<TreeNode[]>([])
-  const [expanded, setExpanded] = useState<ExpandedState>({})
+  const [nodesPayload, setNodesPayload] = useState<Nodes>({ intent: 'collapsed', nodes: [] })
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -36,7 +30,7 @@ function App() {
       setComponents(fetched)
       const built = buildComponentTree(fetched)
       setTree(built)
-      setExpanded(collapseAll())
+        setNodesPayload({ intent: 'collapsed', nodes: built })
       setLoading(false)
     }
 
@@ -53,22 +47,14 @@ function App() {
       setComponents(filteredComponents)
       const built = buildComponentTree(filteredComponents)
       setTree(built)
-      setLoading(false)
+        // when a query is applied, treat incoming nodes as 'expanded' so matches and parents are visible
+        setNodesPayload(query.length > 0 ? { intent: 'expanded', nodes: built } : { intent: 'preserve', nodes: built })
+        setLoading(false)
     }
     fetchAndBuild()
   }, [query, submission])
 
-  const { visibleNodeIds, visibleNodeWithAncestors } = useMemo(
-    () => filterTree(tree, query),
-    [tree, query]
-  )
-
-  const isCollapsedAll = Object.keys(expanded).length === 0
-
-  const toggleNode = (nodeId: string) => {
-    const isOpen = !!expanded[nodeId]
-    setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
-  }
+  // tree expansion is owned by TreeView; App sends intent+nodes via `nodesPayload`
 
   return (
     <div className="app">
@@ -79,8 +65,8 @@ function App() {
             <p className="subtitle">Single submission + tree from backend components</p>
           </div>
           <div className="header-actions">
-            <button onClick={() => setExpanded(expandAll(tree))}>Expand all</button>
-            <button onClick={() => setExpanded(collapseAll())}>Collapse all</button>
+            <button onClick={() => setNodesPayload({ intent: 'expanded', nodes: tree })}>Expand all</button>
+            <button onClick={() => setNodesPayload({ intent: 'collapsed', nodes: tree })}>Collapse all</button>
           </div>
         </div>
 
@@ -107,14 +93,7 @@ function App() {
         {loading ? (
           <div className="status">Loading...</div>
         ) : (
-          <TreeView
-            nodes={tree}
-            expanded={expanded}
-            visibleNodeIds={visibleNodeIds}
-            visibleNodeWithAncestors={visibleNodeWithAncestors}
-            onToggle={toggleNode}
-            hasQuery={query.length > 0}
-          >
+          <TreeView nodes={nodesPayload}>
             <StationPresenter />
             <FieldPresenter />
             <SwitchPresenter />
@@ -122,8 +101,8 @@ function App() {
         )}
 
         <div className="note">
-          {query.length > 0 && isCollapsedAll
-            ? 'All is collapsed with a text filter; matching nodes are shown with ancestors expanded automatically.'
+          {query.length > 0
+            ? 'Filter applied; matching nodes (and ancestors) are shown.'
             : 'Toggle any node to expand/collapse individually.'}
         </div>
       </div>

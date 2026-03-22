@@ -1,28 +1,27 @@
-import React, { Children, cloneElement, isValidElement, type ReactElement } from 'react'
-import type { TreeNode } from '../tree-view'
-import type { ExpandedState } from '../tree-view'
+import React, { Children, cloneElement, isValidElement, type ReactElement, useState } from 'react'
+import type { TreeNode, Nodes } from './tree-view'
 
 interface TreeViewProps {
-  nodes: TreeNode[]
-  expanded: ExpandedState
-  visibleNodeIds: Set<string>
-  visibleNodeWithAncestors: Set<string>
-  onToggle: (nodeId: string) => void
-  hasQuery: boolean
+  nodes: Nodes
   children: React.ReactNode
 }
 
-export function TreeView({
-  nodes,
-  expanded,
-  visibleNodeIds,
-  visibleNodeWithAncestors,
-  onToggle,
-  hasQuery,
-  children,
-}: TreeViewProps) {
+export function TreeView({ nodes, children }: TreeViewProps) {
+  // Track only user-driven overrides. This allows the component to
+  // treat incoming `nodes.intent` as a one-time command (expanded/collapsed)
+  // without calling setState inside an effect. The effective expanded
+  // state for a node is computed from the intent + any user override.
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({})
+
+  const getEffective = (id: string, localOverrides: Record<string, boolean>) => {
+    if (Object.prototype.hasOwnProperty.call(localOverrides, id)) return localOverrides[id]
+    if (nodes.intent === 'expanded') return true
+    if (nodes.intent === 'collapsed') return false
+    // preserve: default to false unless user has toggled
+    return false
+  }
+
   const renderNode = (node: TreeNode) => {
-    // Render all valid children, each decides if it handles this node type
     return Children.map(children, (child) => {
       if (isValidElement(child)) {
         return cloneElement(child as ReactElement<{ node: TreeNode }>, { node })
@@ -31,24 +30,25 @@ export function TreeView({
     })
   }
 
+  const toggleNode = (nodeId: string) => {
+    setOverrides((prev) => {
+      const current = getEffective(nodeId, prev)
+      return { ...prev, [nodeId]: !current }
+    })
+  }
+
   const renderTree = (treeNodes: TreeNode[], depth = 0) => {
     const rendered: React.ReactElement[] = []
 
     for (const node of treeNodes) {
-      const visible = !hasQuery ? true : visibleNodeIds.has(node.id)
-      if (!visible) {
-        continue
-      }
-
       const hasChildren = node.children.length > 0
-      const userExpanded = !!expanded[node.id]
-      const autoExpandedForFilter = hasQuery && visibleNodeWithAncestors.has(node.id)
-      const isExpanded = hasChildren && (autoExpandedForFilter || userExpanded)
+      const userExpanded = getEffective(node.id, overrides)
+      const isExpanded = hasChildren && userExpanded
 
       rendered.push(
         <div key={node.id} className="tree-row" style={{ marginLeft: depth * 12 }}>
           {hasChildren && (
-            <button className="tree-toggle" onClick={() => onToggle(node.id)}>
+            <button className="tree-toggle" onClick={() => toggleNode(node.id)}>
               {isExpanded ? '▼' : '▶'}
             </button>
           )}
@@ -65,5 +65,5 @@ export function TreeView({
     return rendered
   }
 
-  return <div className="tree-container">{renderTree(nodes)}</div>
+  return <div className="tree-container">{renderTree(nodes.nodes)}</div>
 }

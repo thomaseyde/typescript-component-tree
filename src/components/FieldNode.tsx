@@ -1,4 +1,4 @@
-import type { TreeNode } from '../tree-view'
+import type { TreeNode } from './tree-view'
 
 interface FieldPresenterProps {
   node?: TreeNode

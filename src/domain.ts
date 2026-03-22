@@ -1,4 +1,4 @@
-import type { TreeNode } from './tree-view'
+import type { TreeNode } from './components/tree-view'
 
 // DTOs
 export type SubmissionDTO = {

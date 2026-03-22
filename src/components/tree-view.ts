@@ -85,3 +85,10 @@ export const filterTree = (
 
   return { visibleNodeIds, visibleNodeWithAncestors }
 }
+
+// Intent-based node payloads for communicating commands + data
+export type ExpandedNodes = { intent: 'expanded'; nodes: TreeNode[] }
+export type CollapsedNodes = { intent: 'collapsed'; nodes: TreeNode[] }
+export type PreserveNodes = { intent: 'preserve'; nodes: TreeNode[] }
+
+export type Nodes = ExpandedNodes | CollapsedNodes | PreserveNodes
