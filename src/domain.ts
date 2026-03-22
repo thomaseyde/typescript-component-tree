@@ -16,22 +16,20 @@ export type ComponentDTO = {
   name: string
 }
 
-// Domain types (type aliases only)
-export type TreeNodeType = 'station' | 'field' | 'switch'
+// Domain types
+export type ComponentType = 'station' | 'field' | 'switch'
 
-export type ComponentTreeNode = {
+export type ComponentNode = {
   id: string
-  type: TreeNodeType
+  type: ComponentType
   name: string
-  children: ComponentTreeNode[]
+  children: ComponentNode[]
   parentId?: string
   buildYear?: number
   stationName?: string
   operatingVoltage?: number
   ratedVoltage?: number
 }
-
-export type TreeState = Record<string, boolean>
 
 // Simulated backend data
 const submissionFixture: SubmissionDTO = { id: 'submission-1', name: 'Customer Submission 1' }
@@ -74,7 +72,7 @@ export const retrieveComponents = async (
   })
 }
 
-export const buildComponentTree = (components: ComponentDTO[]): ComponentTreeNode[] => {
+export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] => {
   const byStation = new Map<string, ComponentDTO[]>()
 
   for (const component of components) {
@@ -93,7 +91,7 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentTreeNod
         byField.set(component.fieldName, fieldComponents)
       }
 
-      const fieldNodes: ComponentTreeNode[] = Array.from(byField.entries())
+      const fieldNodes: ComponentNode[] = Array.from(byField.entries())
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([fieldName, fieldComponents]) => {
           const first = fieldComponents[0]
@@ -127,77 +125,4 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentTreeNod
     })
 }
 
-export const getAllNodeIds = (nodes: ComponentTreeNode[]): string[] => {
-  const ids: string[] = []
-  const walk = (node: ComponentTreeNode) => {
-    ids.push(node.id)
-    for (const child of node.children) {
-      walk(child)
-    }
-  }
-  for (const node of nodes) {
-    walk(node)
-  }
-  return ids
-}
 
-export const expandAll = (nodes: ComponentTreeNode[]): TreeState => {
-  const ids = getAllNodeIds(nodes)
-  const expanded: TreeState = {}
-  for (const id of ids) {
-    expanded[id] = true
-  }
-  return expanded
-}
-
-export const collapseAll = (): TreeState => ({})
-
-export const expandOne = (state: TreeState, nodeId: string): TreeState => ({ ...state, [nodeId]: true })
-
-export const collapseOne = (state: TreeState, nodeId: string): TreeState => {
-  const next: TreeState = { ...state }
-  delete next[nodeId]
-  return next
-}
-
-export const filterTree = (
-  nodes: ComponentTreeNode[],
-  query: string
-): { visibleNodeIds: Set<string>; visibleNodeWithAncestors: Set<string> } => {
-  const normalizedQuery = query.trim().toLowerCase()
-  const visibleNodeIds = new Set<string>()
-  const visibleNodeWithAncestors = new Set<string>()
-
-  if (normalizedQuery.length === 0) {
-    const allIds = getAllNodeIds(nodes)
-    allIds.forEach((id) => visibleNodeIds.add(id))
-    allIds.forEach((id) => visibleNodeWithAncestors.add(id))
-    return { visibleNodeIds, visibleNodeWithAncestors }
-  }
-
-  const walk = (node: ComponentTreeNode, ancestors: ComponentTreeNode[]) => {
-    const matches = node.name.toLowerCase().includes(normalizedQuery)
-    let hasMatchInSubtree = matches
-
-    for (const child of node.children) {
-      const childHasMatch = walk(child, [...ancestors, node])
-      hasMatchInSubtree = hasMatchInSubtree || childHasMatch
-    }
-
-    if (hasMatchInSubtree) {
-      visibleNodeIds.add(node.id)
-      for (const ancestor of ancestors) {
-        visibleNodeWithAncestors.add(ancestor.id)
-      }
-      visibleNodeWithAncestors.add(node.id)
-    }
-
-    return hasMatchInSubtree
-  }
-
-  for (const node of nodes) {
-    walk(node, [])
-  }
-
-  return { visibleNodeIds, visibleNodeWithAncestors }
-}

@@ -22,3 +22,6 @@
 ## Fix mixed concepts
 
 > Separate domain code from the treeview code
+
+> Treeview concepts are still present in the domain, like: TreeNodeType, ComponentTreeNode, TreeState. If these are domain concepts, give them better names. If treeview concepts are still mixed with domain concepts, then separate them
+

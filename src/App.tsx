@@ -3,25 +3,27 @@ import './App.css'
 import type {
   SubmissionDTO,
   ComponentDTO,
-  ComponentTreeNode,
-  TreeState,
+  ComponentNode,
 } from './domain'
+import type { ExpandedState } from './tree-view'
 import {
   retrieveSubmission,
   retrieveComponents,
   buildComponentTree,
+} from './domain'
+import {
   collapseAll,
   collapseOne,
   expandAll,
   expandOne,
   filterTree,
-} from './domain'
+} from './tree-view'
 
 function App() {
   const [submission, setSubmission] = useState<SubmissionDTO | null>(null)
   const [components, setComponents] = useState<ComponentDTO[]>([])
-  const [tree, setTree] = useState<ComponentTreeNode[]>([])
-  const [expanded, setExpanded] = useState<TreeState>({})
+  const [tree, setTree] = useState<ComponentNode[]>([])
+  const [expanded, setExpanded] = useState<ExpandedState>({})
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -68,7 +70,7 @@ function App() {
     setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
   }
 
-  const renderTree = (nodes: ComponentTreeNode[], depth = 0) => {
+  const renderTree = (nodes: ComponentNode[], depth = 0) => {
     const rendered: React.ReactElement[] = []
 
     for (const node of nodes) {
