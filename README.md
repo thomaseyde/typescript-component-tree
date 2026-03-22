@@ -27,3 +27,5 @@
 
 > Separate domain presentation from the treeview presentation. The treeview presentation code should render the treeview structure like expand/collapse node buttons. The node content should be delegated to specialised react components, one for station, one for field, one for switch.
 
+> The treeview presentation is mostly built in code, part of the App component. Current structure makes it hard to extend the tree with new domain components. Separate the treeview to its own react component and let it accept rendering components. Something like <TreeView><Node><!-- custom component --></Node></TreeView>.
+

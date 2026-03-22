@@ -18,6 +18,7 @@ import {
   expandOne,
   filterTree,
 } from './tree-view'
+import { TreeView } from './components/TreeView'
 import { NodeContent } from './components/NodeContent'
 
 function App() {
@@ -71,38 +72,8 @@ function App() {
     setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
   }
 
-  const renderTree = (nodes: ComponentNode[], depth = 0) => {
-    const rendered: React.ReactElement[] = []
-
-    for (const node of nodes) {
-      const visible = query.length === 0 ? true : visibleNodeIds.has(node.id)
-      if (!visible) {
-        continue
-      }
-
-      const hasChildren = node.children.length > 0
-      const userExpanded = !!expanded[node.id]
-      const autoExpandedForFilter = query.length > 0 && visibleNodeWithAncestors.has(node.id)
-      const isExpanded = hasChildren && (autoExpandedForFilter || userExpanded)
-
-      rendered.push(
-        <div key={node.id} className="tree-row" style={{ marginLeft: depth * 12 }}>
-          {hasChildren && (
-            <button className="tree-toggle" onClick={() => toggleNode(node.id)}>
-              {isExpanded ? '▼' : '▶'}
-            </button>
-          )}
-          {!hasChildren && <span className="tree-toggle-placeholder" />}
-          <NodeContent node={node} />
-        </div>
-      )
-
-      if (hasChildren && isExpanded) {
-        rendered.push(...renderTree(node.children, depth + 1))
-      }
-    }
-
-    return rendered
+  const renderNodeContent = (node: ComponentNode) => {
+    return <NodeContent node={node} />
   }
 
   return (
@@ -142,7 +113,15 @@ function App() {
         {loading ? (
           <div className="status">Loading...</div>
         ) : (
-          <div className="tree-container">{renderTree(tree)}</div>
+          <TreeView
+            nodes={tree}
+            expanded={expanded}
+            visibleNodeIds={visibleNodeIds}
+            visibleNodeWithAncestors={visibleNodeWithAncestors}
+            onToggle={toggleNode}
+            renderNode={renderNodeContent}
+            hasQuery={query.length > 0}
+          />
         )}
 
         <div className="note">
