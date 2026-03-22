@@ -19,3 +19,6 @@
 
 > Extend the domain: Station should have name and build year. Field should have name, station it belongs to (the parent), operating voltage. Switch should have name and rated voltage.
 
+## Fix mixed concepts
+
+> Separate domain code from the treeview code
