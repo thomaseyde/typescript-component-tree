@@ -1,15 +1,15 @@
-import React from 'react'
-import type { ComponentNode } from '../domain'
+import React, { Children, cloneElement, isValidElement, type ReactElement } from 'react'
+import type { TreeNode } from '../tree-view'
 import type { ExpandedState } from '../tree-view'
 
 interface TreeViewProps {
-  nodes: ComponentNode[]
+  nodes: TreeNode[]
   expanded: ExpandedState
   visibleNodeIds: Set<string>
   visibleNodeWithAncestors: Set<string>
   onToggle: (nodeId: string) => void
-  renderNode: (node: ComponentNode) => React.ReactNode
   hasQuery: boolean
+  children: React.ReactNode
 }
 
 export function TreeView({
@@ -18,10 +18,20 @@ export function TreeView({
   visibleNodeIds,
   visibleNodeWithAncestors,
   onToggle,
-  renderNode,
   hasQuery,
+  children,
 }: TreeViewProps) {
-  const renderTree = (treeNodes: ComponentNode[], depth = 0) => {
+  const renderNode = (node: TreeNode) => {
+    // Render all valid children, each decides if it handles this node type
+    return Children.map(children, (child) => {
+      if (isValidElement(child)) {
+        return cloneElement(child as ReactElement<{ node: TreeNode }>, { node })
+      }
+      return null
+    })
+  }
+
+  const renderTree = (treeNodes: TreeNode[], depth = 0) => {
     const rendered: React.ReactElement[] = []
 
     for (const node of treeNodes) {

@@ -1,16 +1,20 @@
-import type { ComponentNode } from '../domain'
+import type { TreeNode } from '../tree-view'
 
-interface StationNodeProps {
-  node: ComponentNode
+interface StationPresenterProps {
+  node?: TreeNode
 }
 
-export function StationNode({ node }: StationNodeProps) {
+export function StationPresenter({ node }: StationPresenterProps) {
+  if (!node || node.type !== 'station') return null
+
+  const { buildYear } = node.data as { buildYear?: number }
+
   return (
     <>
       <span className={`tree-node ${node.type}`}>{node.name}</span>
       <span className="tree-meta">({node.type})</span>
-      {node.buildYear != null && (
-        <span className="tree-meta">• Build year: {node.buildYear}</span>
+      {buildYear != null && (
+        <span className="tree-meta">• Build year: {buildYear}</span>
       )}
     </>
   )

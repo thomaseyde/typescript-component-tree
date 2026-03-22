@@ -1,11 +1,19 @@
-import type { ComponentNode } from './domain'
+// Tree structure - completely decoupled from domain
+export type TreeNode = {
+  id: string
+  type: string
+  name: string
+  children: TreeNode[]
+  parentId?: string
+  data: Record<string, unknown>
+}
 
 // Tree view state - tracks which nodes are expanded/collapsed
 export type ExpandedState = Record<string, boolean>
 
-export const getAllNodeIds = (nodes: ComponentNode[]): string[] => {
+export const getAllNodeIds = (nodes: TreeNode[]): string[] => {
   const ids: string[] = []
-  const walk = (node: ComponentNode) => {
+  const walk = (node: TreeNode) => {
     ids.push(node.id)
     for (const child of node.children) {
       walk(child)
@@ -17,7 +25,7 @@ export const getAllNodeIds = (nodes: ComponentNode[]): string[] => {
   return ids
 }
 
-export const expandAll = (nodes: ComponentNode[]): ExpandedState => {
+export const expandAll = (nodes: TreeNode[]): ExpandedState => {
   const ids = getAllNodeIds(nodes)
   const expanded: ExpandedState = {}
   for (const id of ids) {
@@ -37,7 +45,7 @@ export const collapseOne = (state: ExpandedState, nodeId: string): ExpandedState
 }
 
 export const filterTree = (
-  nodes: ComponentNode[],
+  nodes: TreeNode[],
   query: string
 ): { visibleNodeIds: Set<string>; visibleNodeWithAncestors: Set<string> } => {
   const normalizedQuery = query.trim().toLowerCase()
@@ -51,7 +59,7 @@ export const filterTree = (
     return { visibleNodeIds, visibleNodeWithAncestors }
   }
 
-  const walk = (node: ComponentNode, ancestors: ComponentNode[]) => {
+  const walk = (node: TreeNode, ancestors: TreeNode[]) => {
     const matches = node.name.toLowerCase().includes(normalizedQuery)
     let hasMatchInSubtree = matches
 

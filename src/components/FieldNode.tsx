@@ -1,16 +1,20 @@
-import type { ComponentNode } from '../domain'
+import type { TreeNode } from '../tree-view'
 
-interface FieldNodeProps {
-  node: ComponentNode
+interface FieldPresenterProps {
+  node?: TreeNode
 }
 
-export function FieldNode({ node }: FieldNodeProps) {
+export function FieldPresenter({ node }: FieldPresenterProps) {
+  if (!node || node.type !== 'field') return null
+
+  const { operatingVoltage } = node.data as { operatingVoltage?: number }
+
   return (
     <>
       <span className={`tree-node ${node.type}`}>{node.name}</span>
       <span className="tree-meta">({node.type})</span>
-      {node.operatingVoltage != null && (
-        <span className="tree-meta">• Op voltage: {node.operatingVoltage}kV</span>
+      {operatingVoltage != null && (
+        <span className="tree-meta">• Op voltage: {operatingVoltage}kV</span>
       )}
     </>
   )

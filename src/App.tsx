@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
-import type {
-  SubmissionDTO,
-  ComponentDTO,
-  ComponentNode,
-} from './domain'
-import type { ExpandedState } from './tree-view'
+import type { SubmissionDTO, ComponentDTO } from './domain'
+import type { TreeNode, ExpandedState } from './tree-view'
 import {
   retrieveSubmission,
   retrieveComponents,
@@ -19,12 +15,14 @@ import {
   filterTree,
 } from './tree-view'
 import { TreeView } from './components/TreeView'
-import { NodeContent } from './components/NodeContent'
+import { StationPresenter } from './components/StationNode'
+import { FieldPresenter } from './components/FieldNode'
+import { SwitchPresenter } from './components/SwitchNode'
 
 function App() {
   const [submission, setSubmission] = useState<SubmissionDTO | null>(null)
   const [components, setComponents] = useState<ComponentDTO[]>([])
-  const [tree, setTree] = useState<ComponentNode[]>([])
+  const [tree, setTree] = useState<TreeNode[]>([])
   const [expanded, setExpanded] = useState<ExpandedState>({})
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
@@ -72,10 +70,6 @@ function App() {
     setExpanded((prev) => (isOpen ? collapseOne(prev, nodeId) : expandOne(prev, nodeId)))
   }
 
-  const renderNodeContent = (node: ComponentNode) => {
-    return <NodeContent node={node} />
-  }
-
   return (
     <div className="app">
       <div className="panel">
@@ -119,9 +113,12 @@ function App() {
             visibleNodeIds={visibleNodeIds}
             visibleNodeWithAncestors={visibleNodeWithAncestors}
             onToggle={toggleNode}
-            renderNode={renderNodeContent}
             hasQuery={query.length > 0}
-          />
+          >
+            <StationPresenter />
+            <FieldPresenter />
+            <SwitchPresenter />
+          </TreeView>
         )}
 
         <div className="note">

@@ -1,3 +1,5 @@
+import type { TreeNode } from './tree-view'
+
 // DTOs
 export type SubmissionDTO = {
   id: string
@@ -14,21 +16,6 @@ export type ComponentDTO = {
   switchName: string
   switchRatedVoltage: number
   name: string
-}
-
-// Domain types
-export type ComponentType = 'station' | 'field' | 'switch'
-
-export type ComponentNode = {
-  id: string
-  type: ComponentType
-  name: string
-  children: ComponentNode[]
-  parentId?: string
-  buildYear?: number
-  stationName?: string
-  operatingVoltage?: number
-  ratedVoltage?: number
 }
 
 // Simulated backend data
@@ -72,7 +59,7 @@ export const retrieveComponents = async (
   })
 }
 
-export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] => {
+export const buildComponentTree = (components: ComponentDTO[]): TreeNode[] => {
   const byStation = new Map<string, ComponentDTO[]>()
 
   for (const component of components) {
@@ -91,7 +78,7 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] 
         byField.set(component.fieldName, fieldComponents)
       }
 
-      const fieldNodes: ComponentNode[] = Array.from(byField.entries())
+      const fieldNodes: TreeNode[] = Array.from(byField.entries())
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([fieldName, fieldComponents]) => {
           const first = fieldComponents[0]
@@ -100,8 +87,10 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] 
             type: 'field',
             name: fieldName,
             parentId: `station:${stationName}`,
-            stationName,
-            operatingVoltage: first.fieldOperatingVoltage,
+            data: {
+              stationName,
+              operatingVoltage: first.fieldOperatingVoltage,
+            },
             children: fieldComponents
               .sort((a, b) => a.name.localeCompare(b.name))
               .map((component) => ({
@@ -109,7 +98,9 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] 
                 type: 'switch',
                 name: component.name,
                 parentId: `field:${stationName}:${fieldName}`,
-                ratedVoltage: component.switchRatedVoltage,
+                data: {
+                  ratedVoltage: component.switchRatedVoltage,
+                },
                 children: [],
               })),
           }
@@ -119,7 +110,9 @@ export const buildComponentTree = (components: ComponentDTO[]): ComponentNode[] 
         id: `station:${stationName}`,
         type: 'station',
         name: stationName,
-        buildYear: stationComponents[0]?.stationBuildYear,
+        data: {
+          buildYear: stationComponents[0]?.stationBuildYear,
+        },
         children: fieldNodes,
       }
     })

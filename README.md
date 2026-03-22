@@ -29,3 +29,7 @@
 
 > The treeview presentation is mostly built in code, part of the App component. Current structure makes it hard to extend the tree with new domain components. Separate the treeview to its own react component and let it accept rendering components. Something like <TreeView><Node><!-- custom component --></Node></TreeView>.
 
+> The treeview code use code to create the node presentations. I want to use markup for this. I also want to completely separate treeview code from domain code. We need at least two structures for this: One to contain all domain components (station, field, switch), and one to contain the tree structure. The tree structure must contain enough information about the domain so that each node can lookup the domain component and render it. One way to do this is to let the TreeView component accept children. There could be one child per domain component, like StationNode, FieldNode, SwitchNode. These domain node will accept the same tree node information, then lookup the actual domain component and decide to render it or not. This may not be the most efficient structure, so suggest options if any.  
+
+> Implement the hybrid approach
+
