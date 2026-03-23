@@ -33,7 +33,11 @@
 
 > Implement the hybrid approach
 
+## Simplify the treeview API
+
+Many prompts which were not tracked.
+
 # Todo
 
-> Review App.tsx for treeview management code which can be moved to TreeView.tsx or tree-view.ts
+> Separate dtos into respective types
 
